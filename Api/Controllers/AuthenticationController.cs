@@ -35,17 +35,50 @@ public class AuthenticationController(UserManager userManager, JwtTokensManager 
     [HttpPost("login")]
     [ProducesResponseType<LoginResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         if (!await userManager.CheckPasswordAsync(request.Username, request.Password))
             return Unauthorized();
 
+        var user = await userManager.GetByUsername(request.Username);
         var accessToken = await jwtTokensManager.GenerateJwt(request.Username);
+        var refreshToken = await jwtTokensManager.SetNewRefreshToken(user!.Id);
 
         return Ok(new LoginResponse
         {
             AccessToken = accessToken.AccessToken,
-            ExpiryDate = accessToken.ExpiryDate
+            AccessTokenExpiryDate = accessToken.ExpiryDate,
+            RefreshToken = refreshToken.RefreshToken,
+            RefreshTokenExpiryDate = refreshToken.ExpiryDate
+        });
+    }
+
+    [HttpPost("refresh")]
+    [ProducesResponseType<RefreshResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
+    {
+        var principal = jwtTokensManager.GetPrincipalFromExpiredToken(request.AccessToken);
+        if (principal.Identity?.Name is null)
+            return Unauthorized();
+
+        var user = await userManager.GetByUsername(principal.Identity.Name);
+        if (user is null)
+            return Unauthorized();
+        if (await jwtTokensManager.IsRefreshTokenValid(user.Id, request.RefreshToken))
+            return Unauthorized();
+        
+        var accessToken = await jwtTokensManager.GenerateJwt(user.Username);
+        var newRefreshToken = await jwtTokensManager.SetNewRefreshToken(user.Id);
+        
+        return Ok(new LoginResponse
+        {
+            AccessToken = accessToken.AccessToken,
+            AccessTokenExpiryDate = accessToken.ExpiryDate,
+            RefreshToken = newRefreshToken.RefreshToken,
+            RefreshTokenExpiryDate = newRefreshToken.ExpiryDate
         });
     }
 }

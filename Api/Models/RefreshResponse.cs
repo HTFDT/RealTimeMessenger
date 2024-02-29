@@ -1,6 +1,6 @@
 ﻿namespace Api.Models;
 
-public record LoginResponse
+public class RefreshResponse
 {
     public required string AccessToken { get; init; }
     public required string RefreshToken { get; init; }

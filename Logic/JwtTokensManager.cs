@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Dal.Entities;
 using Dal.Repository;
 using Dal.Repository.Interfaces;
 using Logic.Models.Jwt;
@@ -13,6 +14,58 @@ namespace Logic;
 
 public class JwtTokensManager(JwtOptions jwtOptions, IUserRepository userRepository)
 {
+    public async Task<RefreshTokenModel> SetNewRefreshToken(Guid userId)
+    {
+        var newToken = GenerateRefreshToken();
+        var newExpiryDate = DateTime.UtcNow.AddDays(jwtOptions.RefreshTokenLifetimeInDays);
+       
+        await userRepository.SetUserRefreshTokenAsync(userId, newToken, newExpiryDate);
+        
+        return new RefreshTokenModel
+        {
+            RefreshToken = newToken,
+            ExpiryDate = newExpiryDate
+        };
+    }
+
+    public async Task<RefreshTokenModel?> GetRefreshToken(Guid userId)
+    {
+        var token = await userRepository.GetUserRefreshTokenAsync(userId);
+        if (token is null)
+            return null;
+        return new RefreshTokenModel
+        {
+            RefreshToken = token.RefreshToken,
+            ExpiryDate = token.ExpiryDate!.Value
+        };
+    }
+    
+    private static string GenerateRefreshToken()
+    {
+        var randomNumber = new byte[64];
+
+        using var generator = RandomNumberGenerator.Create();
+
+        generator.GetBytes(randomNumber);
+
+        return Convert.ToBase64String(randomNumber);
+    }
+
+    public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+    {
+        var secret = jwtOptions.Secret ?? throw new InvalidOperationException("Secret not configured");
+
+        var validation = new TokenValidationParameters
+        {
+            ValidIssuer = jwtOptions.ValidIssuer,
+            ValidAudience = jwtOptions.ValidAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
+            ValidateLifetime = false
+        };
+
+        return new JwtSecurityTokenHandler().ValidateToken(token, validation, out _);
+    }
+    
     public async Task<AccessTokenModel> GenerateJwt(string username)
     {
         var user = await userRepository.GetByUsernameAsync(username);
@@ -44,5 +97,12 @@ public class JwtTokensManager(JwtOptions jwtOptions, IUserRepository userReposit
             AccessToken = new JwtSecurityTokenHandler().WriteToken(token),
             ExpiryDate = token.ValidTo
         };
+    }
+
+    public async Task<bool> IsRefreshTokenValid(Guid userId, string requestToken)
+    {
+        var refreshToken = await GetRefreshToken(userId);
+        return refreshToken is null || refreshToken.RefreshToken != requestToken
+                                    || DateTime.UtcNow > refreshToken.ExpiryDate;
     }
 }
