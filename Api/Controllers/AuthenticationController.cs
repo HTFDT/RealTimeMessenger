@@ -4,6 +4,7 @@ using System.Text;
 using Api.Models;
 using Logic;
 using Logic.Models.User;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -80,5 +81,22 @@ public class AuthenticationController(UserManager userManager, JwtTokensManager 
             RefreshToken = newRefreshToken.RefreshToken,
             RefreshTokenExpiryDate = newRefreshToken.ExpiryDate
         });
+    }
+    
+    [Authorize]
+    [HttpDelete("revoke")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> Revoke()
+    {
+        if (User.Identity?.Name is null)
+            return Unauthorized();
+
+        var user = await userManager.GetByUsername(User.Identity.Name);
+        if (user is null)
+            return Unauthorized();
+
+        await jwtTokensManager.RevokeRefreshToken(user.Id);
+        return Ok();
     }
 }

@@ -39,6 +39,11 @@ public class JwtTokensManager(JwtOptions jwtOptions, IUserRepository userReposit
             ExpiryDate = token.ExpiryDate!.Value
         };
     }
+
+    public Task RevokeRefreshToken(Guid userId)
+    {
+        return userRepository.RevokeUserRefreshTokenAsync(userId);
+    }
     
     private static string GenerateRefreshToken()
     {
