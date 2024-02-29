@@ -7,7 +7,7 @@ using Logic.Models.User;
 
 namespace Logic;
 
-public class UserManager(IUserRepository userRepository)
+public class UserManager(IUserRepository userRepository, IRoleRepository roleRepository)
 {
     public async Task<Guid> CreateUser(UserInModel userIn)
     {
@@ -69,6 +69,27 @@ public class UserManager(IUserRepository userRepository)
     public Task DeleteUser(Guid id)
     {
         return userRepository.DeleteByIdAsync(id);
+    }
+    
+    public async Task AssignUserRole(Guid userId, string roleName)
+    {
+        var user =  await userRepository.GetByIdAsync(userId);
+        if (user is null)
+            throw new InvalidOperationException($"User with id '{userId}' doesn't exist");
+        var role = await roleRepository.GetByRoleNameAsync(roleName);
+        if (role is null)
+            throw new InvalidOperationException($"No role with name '{roleName}'");
+        await userRepository.AddUserRoleAsync(userId, roleName);
+    }
+
+    public async Task<IEnumerable<UserOutModel>> GetAllUsers()
+    {
+        var users = await userRepository.GetAllAsync();
+        return users.Select(u => new UserOutModel
+        {
+            Username = u.Username,
+            Id = u.Id
+        });
     }
     
     public async Task<bool> SetUserProfile(Guid userId, ProfileModel profile)
