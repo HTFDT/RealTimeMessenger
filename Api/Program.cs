@@ -1,7 +1,9 @@
-using Logic;
 using System.Text;
+using Api;
 using Dal.Repository;
 using Dal.Extensions;
+using Dal.Repository.Interfaces;
+using Logic;
 using Logic.Models.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -54,11 +56,24 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Superuser", policy => policy.RequireRole("Superuser"));
+    options.AddPolicy("Administrator", policy => policy.RequireRole("Administrator", "Superuser"));
+});
+
 builder.Services.AddTransient<UserManager>();
 builder.Services.AddTransient<JwtTokensManager>();
+builder.Services.AddTransient<RoleManager>();
 
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await SeedData.Initialize(services, builder.Configuration.GetValue<string>("SeedUserPw")!);
+}
 
 if (app.Environment.IsDevelopment())
 {
