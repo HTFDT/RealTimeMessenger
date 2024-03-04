@@ -82,6 +82,7 @@ public class JwtTokensManager(JwtOptions jwtOptions, IUserRepository userReposit
         var authClaims = new List<Claim>
         {
             new(ClaimTypes.Name, username),
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
         authClaims.AddRange(roleClaims);
