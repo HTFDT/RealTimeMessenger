@@ -5,3 +5,6 @@ riderModule.iml
 /_ReSharper.Caches/
 .idea/
 /IdentityApi/Dal/ApplicationDbContextFactory.cs
+/GroupsApi/Infrastructure/ApplicationDbContextFactory.cs
+
+/Dal/ApplicationDbContextFactory.cs
