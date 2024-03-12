@@ -1,6 +1,7 @@
 ﻿using Domain.Entities;
 using Domain.Exceptions;
 using Domain.Interfaces;
+using Services.Attributes;
 using Services.Interfaces.Interfaces;
 using Shared.Dto.Messages;
 using Shared.Enums;
@@ -9,24 +10,28 @@ namespace Services.Implementations;
 
 internal class MessagesService(IRepositoryManager repoManager) : IMessagesService
 {
+    [EnsureRequesterRights("ViewMessages")]
     public Task<IEnumerable<MessageResponse>> GetMessagesInGroupAfterJoin(Guid requesterId, Guid groupId, long? groupNumFrom, long? groupNumTo)
     {
         return GetMessagesInGroup(requesterId, groupId,
             m => m.GroupNumber >= (groupNumFrom ?? 0) && m.GroupNumber < (groupNumTo ?? long.MaxValue));
     }
 
+    [EnsureRequesterRights("ViewMessages")]
     public Task<IEnumerable<MessageResponse>> GetMessagesInGroupAfterJoin(Guid requesterId, Guid groupId, DateTime? dateFrom, DateTime? dateTo)
     {
         return GetMessagesInGroup(requesterId, groupId,
             m => (dateFrom is null || m.DateSent >= dateFrom) && (dateTo is null || m.DateSent < dateTo));
     }
 
+    [EnsureRequesterRights("ViewMessages", "ViewHistory")]
     public Task<IEnumerable<MessageResponse>> GetMessagesInGroupBeforeJoin(Guid requesterId, Guid groupId, long? groupNumFrom, long? groupNumTo)
     {
         return GetMessagesInGroup(requesterId, groupId,
             m => m.GroupNumber >= (groupNumFrom ?? 0) && m.GroupNumber < (groupNumTo ?? long.MaxValue));
     }
 
+    [EnsureRequesterRights("ViewMessages", "ViewHistory")]
     public Task<IEnumerable<MessageResponse>> GetMessagesInGroupBeforeJoin(Guid requesterId, Guid groupId, DateTime? dateFrom, DateTime? dateTo)
     {
         return GetMessagesInGroup(requesterId, groupId,
@@ -49,24 +54,28 @@ internal class MessagesService(IRepositoryManager repoManager) : IMessagesServic
             m.Text));
     }
 
+    [EnsureRequesterRights("ViewMessages", "ViewHistory")]
     public Task<MessageResponse> GetMessageInGroupBeforeJoin(Guid requesterId, Guid groupId, Guid messageId)
     {
         return GetMessageInGroup(requesterId, groupId, m => m.Id == messageId,
             new MessageNotFoundException(groupId, messageId));
     }
 
+    [EnsureRequesterRights("ViewMessages", "ViewHistory")]
     public Task<MessageResponse> GetMessageInGroupBeforeJoin(Guid requesterId, Guid groupId, long groupNum)
     {
         return GetMessageInGroup(requesterId, groupId, m => m.GroupNumber == groupNum,
             new MessageNotFoundException(groupId, groupNum));
     }
 
+    [EnsureRequesterRights("ViewMessages")]
     public Task<MessageResponse> GetMessageInGroupAfterJoin(Guid requesterId, Guid groupId, Guid messageId)
     {
         return GetMessageInGroup(requesterId, groupId, m => m.Id == messageId,
             new MessageNotFoundException(groupId, messageId));
     }
 
+    [EnsureRequesterRights("ViewMessages")]
     public Task<MessageResponse> GetMessageInGroupAfterJoin(Guid requesterId, Guid groupId, long groupNum)
     {
         return GetMessageInGroup(requesterId, groupId, m => m.GroupNumber == groupNum,
@@ -98,6 +107,7 @@ internal class MessagesService(IRepositoryManager repoManager) : IMessagesServic
             message.Text);
     }
 
+    [EnsureRequesterRights("SendMessages")]
     public async Task<MessageResponse> CreateMessage(Guid requesterId, Guid groupId, CreateMessageRequest request)
     {
         var group = await CheckGroupExists(groupId);
@@ -179,16 +189,19 @@ internal class MessagesService(IRepositoryManager repoManager) : IMessagesServic
         return DeleteMessage(requesterId, groupId, m => m.Id == messageId, new MessageNotFoundException(groupId, messageId));
     }
 
+    [EnsureRequesterRights("DeleteMessages")]
     public Task DeleteSomeoneElseMessage(Guid requesterId, Guid groupId, long groupNumber)
     {
         return DeleteMessage(requesterId, groupId, m => m.GroupNumber == groupNumber, new MessageNotFoundException(groupId, groupNumber));
     }
 
+    [EnsureRequesterRights("DeleteMessages")]
     public Task DeleteSomeoneElseMessage(Guid requesterId, Guid groupId, Guid messageId)
     {
         return DeleteMessage(requesterId, groupId, m => m.Id == messageId, new MessageNotFoundException(groupId, messageId));
     }
-    
+
+    [EnsureRequesterRights("ManagePins")]
     public async Task<MessageResponse> PinMessage(Guid requesterId, Guid groupId, Guid messageId)
     {
         var group = await CheckGroupExists(groupId);
@@ -206,7 +219,8 @@ internal class MessagesService(IRepositoryManager repoManager) : IMessagesServic
             message.IsPinned,
             message.Text); 
     }
-    
+   
+    [EnsureRequesterRights("ManagePins")]
     public async Task<MessageResponse> PinMessage(Guid requesterId, Guid groupId, long groupNumber)
     {
         var group = await CheckGroupExists(groupId);
@@ -225,6 +239,7 @@ internal class MessagesService(IRepositoryManager repoManager) : IMessagesServic
             message.Text); 
     }
     
+    [EnsureRequesterRights("ManagePins")]
     public async Task<MessageResponse> UnpinMessage(Guid requesterId, Guid groupId, Guid messageId)
     {
         var group = await CheckGroupExists(groupId);
@@ -243,6 +258,7 @@ internal class MessagesService(IRepositoryManager repoManager) : IMessagesServic
             message.Text); 
     }
     
+    [EnsureRequesterRights("ManagePins")]
     public async Task<MessageResponse> UnpinMessage(Guid requesterId, Guid groupId, long groupNumber)
     {
         var group = await CheckGroupExists(groupId);
