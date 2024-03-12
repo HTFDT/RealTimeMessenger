@@ -1,6 +1,7 @@
 ﻿using Domain.Entities;
 using Domain.Exceptions;
 using Domain.Interfaces;
+using Services.Attributes;
 using Services.Interfaces.Interfaces;
 using Shared.Dto.GroupRights;
 using Shared.Dto.GroupRoles;
@@ -9,6 +10,7 @@ namespace Services.Implementations;
 
 internal class GroupRolesService(IRepositoryManager repoManager) : IGroupRolesService
 {
+    [EnsureRequesterRights("ViewRoles")]
     public async Task<IEnumerable<GroupRoleResponse>> GetGroupRoles(Guid requesterId, Guid groupId)
     {
         var group = await CheckGroupExists(groupId);
@@ -25,6 +27,7 @@ internal class GroupRolesService(IRepositoryManager repoManager) : IGroupRolesSe
             gr.GroupRights.Select(gRight => gRight.Id)));
     }
 
+    [EnsureRequesterRights("ViewRoles")]
     public async Task<GroupRoleResponse> GetGroupRole(Guid requesterId, Guid groupId, Guid groupRoleId)
     {
         var group = await CheckGroupExists(groupId);
@@ -40,6 +43,7 @@ internal class GroupRolesService(IRepositoryManager repoManager) : IGroupRolesSe
             gr.GroupRights.Select(gRight => gRight.Id));
     }
 
+    [EnsureRequesterRights("ManageRoles")]
     public async Task<GroupRoleResponse> CreateGroupRole(Guid requesterId, Guid groupId, CreateGroupRoleRequest request)
     {
         var group = await CheckGroupExists(groupId);
@@ -69,6 +73,7 @@ internal class GroupRolesService(IRepositoryManager repoManager) : IGroupRolesSe
             distinctIds);
     }
 
+    [EnsureRequesterRights("ManageRoles")]
     public async Task<GroupRoleResponse> UpdateGroupRole(Guid requesterId, Guid groupId, Guid groupRoleId,
         UpdateGroupRoleRequest request)
     {
@@ -90,6 +95,7 @@ internal class GroupRolesService(IRepositoryManager repoManager) : IGroupRolesSe
             idsToReturn);
     }
 
+    [EnsureRequesterRights("ManageRoles")]
     public async Task DeleteGroupRole(Guid requesterId, Guid groupId, Guid groupRoleId)
     {
         var group = await CheckGroupExists(groupId);
@@ -110,6 +116,7 @@ internal class GroupRolesService(IRepositoryManager repoManager) : IGroupRolesSe
         await repoManager.UnitOfWork.SaveChangesAsync();
     }
 
+    [EnsureRequesterRights("ManageRoles")]
     public async Task<GroupRoleResponse> AddRightToGroupRole(Guid requesterId, Guid groupId, Guid groupRoleId,
         AddRightToGroupRoleRequest request)
     {
@@ -133,6 +140,7 @@ internal class GroupRolesService(IRepositoryManager repoManager) : IGroupRolesSe
             groupRightIds);
     }
 
+    [EnsureRequesterRights("ManageRoles")]
     public async Task<GroupRoleResponse> RemoveRightFromGroupRole(Guid requesterId, Guid groupId, Guid groupRoleId,
         Guid groupRightId)
     {
