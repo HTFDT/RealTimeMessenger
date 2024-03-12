@@ -1,6 +1,7 @@
 ﻿using Domain.Entities;
 using Domain.Exceptions;
 using Domain.Interfaces;
+using Services.Attributes;
 using Services.Interfaces.Interfaces;
 using Shared.Dto.Groups;
 
@@ -81,7 +82,8 @@ internal class GroupsService(IRepositoryManager repositoryManager) : IGroupsServ
             group.DefaultMemberRoleId,
             distinctIds);
     }
-
+    
+    [EnsureRequesterRights("EditGroup")]
     public async Task<GroupResponse> UpdateGroup(Guid requestedId, Guid groupId, UpdateGroupRequest request)
     {
         var group = await CheckGroupExists(groupId);
@@ -109,7 +111,8 @@ internal class GroupsService(IRepositoryManager repositoryManager) : IGroupsServ
             group.DefaultMemberRoleId,
             existingIds.Concat(idsToAdd));
     }
-
+    
+    [EnsureRequesterRights("DeleteGroup")]
     public async Task DeleteGroup(Guid requesterId, Guid groupId)
     {
         var group = await CheckGroupExists(groupId);
@@ -117,6 +120,7 @@ internal class GroupsService(IRepositoryManager repositoryManager) : IGroupsServ
         await repositoryManager.UnitOfWork.SaveChangesAsync();
     }
 
+    [EnsureRequesterRights("EditGroup")]
     public async Task AddTag(Guid requesterId, Guid groupId, AddTagRequest request)
     {
         var group = await CheckGroupExists(groupId);
@@ -129,6 +133,7 @@ internal class GroupsService(IRepositoryManager repositoryManager) : IGroupsServ
         await repositoryManager.UnitOfWork.SaveChangesAsync();
     }
 
+    [EnsureRequesterRights("EditGroup")]
     public async Task RemoveTag(Guid requesterId, Guid groupId, Guid tagId)
     {
         var group = await CheckGroupExists(groupId);
@@ -138,6 +143,7 @@ internal class GroupsService(IRepositoryManager repositoryManager) : IGroupsServ
         await repositoryManager.UnitOfWork.SaveChangesAsync();
     }
 
+    [EnsureRequesterRights("EditGroup")]
     public async Task<GroupResponse> SetDefaultMemberRole(Guid requesterId, Guid groupId, SetDefaultMemberRoleRequest request)
     {
         var group = await CheckGroupExists(groupId);
