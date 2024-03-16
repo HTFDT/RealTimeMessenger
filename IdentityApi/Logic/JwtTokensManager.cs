@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Core.Base.Jwt;
 using Dal.Entities;
 using Dal.Repository;
 using Dal.Repository.Interfaces;
@@ -62,9 +63,9 @@ public class JwtTokensManager(JwtOptions jwtOptions, IUserRepository userReposit
 
         var validation = new TokenValidationParameters
         {
-            ValidIssuer = jwtOptions.ValidIssuer,
-            ValidAudience = jwtOptions.ValidAudience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
+            ValidateAudience = false,
+            ValidateIssuer = false,
             ValidateLifetime = false
         };
 
@@ -91,8 +92,6 @@ public class JwtTokensManager(JwtOptions jwtOptions, IUserRepository userReposit
             jwtOptions.Secret ?? throw new InvalidOperationException("Secret not configured")));
 
         var token = new JwtSecurityToken(
-            issuer: jwtOptions.ValidIssuer,
-            audience: jwtOptions.ValidAudience,
             expires: DateTime.UtcNow.AddSeconds(jwtOptions.LifetimeInSeconds),
             claims: authClaims,
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
