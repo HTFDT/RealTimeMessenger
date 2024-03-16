@@ -1,0 +1,6 @@
+﻿{
+  "Jwt": {
+    "LifetimeInSeconds": 300,
+    "RefreshTokenLifetimeInDays": 7
+  }
+}
