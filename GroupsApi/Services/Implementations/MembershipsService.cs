@@ -1,6 +1,7 @@
 ﻿using Domain.Entities;
 using Domain.Exceptions;
 using Domain.Interfaces;
+using Services.Attributes;
 using Services.Interfaces.Interfaces;
 using Shared.Dto.Groups;
 using Shared.Dto.Memberships;
@@ -24,6 +25,7 @@ internal class MembershipsService(IRepositoryManager repoManager) : IMemberships
         return await AddMember(request.UserId, group);
     }
     
+    [EnsureRequesterRights("AddMembers")]
     public async Task<MembershipResponse> AddMemberToPrivateGroup(Guid requesterId, Guid groupId, AddMemberRequest request)
     {
         var group = await CheckGroupExists(groupId);
@@ -89,6 +91,7 @@ internal class MembershipsService(IRepositoryManager repoManager) : IMemberships
             newMember.DateKicked);
     }
     
+    [EnsureRequesterRights("KickMembers")]
     public async Task<MembershipResponse> KickMember(Guid requesterId, Guid groupId, Guid kickedId)
     {
         var group = await CheckGroupExists(groupId);
@@ -112,6 +115,7 @@ internal class MembershipsService(IRepositoryManager repoManager) : IMemberships
             member.DateKicked);
     }
     
+    [EnsureRequesterRights("ViewMembers")]
     public async Task<IEnumerable<MembershipResponse>> GetAllMembers(Guid requesterId, Guid groupId)
     {
         var group = await CheckGroupExists(groupId);
@@ -125,6 +129,7 @@ internal class MembershipsService(IRepositoryManager repoManager) : IMemberships
             member.DateKicked));
     }
     
+    [EnsureRequesterRights("ViewMembers")]
     public async Task<MembershipResponse> GetMember(Guid requesterId, Guid groupId, Guid memberId)
     {
         await CheckGroupExists(groupId);
@@ -161,6 +166,7 @@ internal class MembershipsService(IRepositoryManager repoManager) : IMemberships
             member.DateKicked);
     }
     
+    [EnsureRequesterRights("ManageRoles")]
     public async Task<MembershipResponse> AssignRoleToMember(Guid requesterId, Guid groupId, Guid memberId, AssignRoleToMemberRequest request)
     {
         var group = await CheckGroupExists(groupId);
