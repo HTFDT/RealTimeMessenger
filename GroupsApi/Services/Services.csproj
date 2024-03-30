@@ -9,6 +9,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Domain\Domain.csproj" />
+      <ProjectReference Include="..\IdentityConnectionLib\IdentityConnectionLib.csproj" />
       <ProjectReference Include="..\Services.Interfaces\Services.Interfaces.csproj" />
     </ItemGroup>
 
