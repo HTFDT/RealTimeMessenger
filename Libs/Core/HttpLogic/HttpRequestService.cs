@@ -2,6 +2,7 @@
 using System.Net.Mime;
 using System.Text;
 using Core.HttpLogic.Interfaces;
+using Core.TraceLogic.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json;
@@ -11,7 +12,8 @@ using ContentType = Core.HttpLogic.Enums.ContentType;
 namespace Core.HttpLogic;
 
 /// <inheritdoc />
-internal class HttpRequestService(IHttpConnectionService httpConnectionService) : IHttpRequestService
+internal class HttpRequestService(IHttpConnectionService httpConnectionService
+    , IEnumerable<ITraceReader> traceReaders) : IHttpRequestService
 {
     /// <inheritdoc />
     public async Task<HttpResponse<TResponse>> SendRequestAsync<TResponse>(HttpRequestData requestData, 
@@ -26,6 +28,11 @@ internal class HttpRequestService(IHttpConnectionService httpConnectionService) 
         httpRequestMessage.Content = content;
         foreach (var header in requestData.HeaderDictionary)
             httpRequestMessage.Headers.Add(header.Key, header.Value);
+        
+        // запись в заголовки запроса трассировочных значений
+        foreach (var reader in traceReaders)
+            httpRequestMessage.Headers.Add(reader.Name, reader.ReadValue());
+        
 
         var res = await httpConnectionService.SendRequestAsync(httpRequestMessage, client, default);
 
