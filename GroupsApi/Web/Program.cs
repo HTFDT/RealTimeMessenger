@@ -1,7 +1,10 @@
+using Core.HttpLogic.Extensions;
 using Core.Jwt;
 using Core.Jwt.Extensions;
 using Core.Middleware;
 using Core.Swagger.Extensions;
+using Core.TraceIdLogic.Extensions;
+using IdentityConnectionLib.ConnectionServices.Extensions;
 using Infrastructure.Extensions;
 using Presentation;
 using Services.Extensions;
@@ -26,6 +29,13 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddServices(builder.Configuration);
 
 builder.Services.AddTransient<ExceptionHandlingMiddleware>();
+builder.Services.AddTransient<TraceWriterMiddleware>();
+builder.Services.AddTransient<TraceIdMiddleware>();
+
+builder.Services.AddHttpRequestService();
+builder.Services.AddIdentityConnectionService();
+builder.Services.TryAddTraceId();
+builder.Services.TryAddTraceJwtToken();
 
 var app = builder.Build();
 
@@ -42,6 +52,8 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<TraceWriterMiddleware>();
+app.UseMiddleware<TraceIdMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
