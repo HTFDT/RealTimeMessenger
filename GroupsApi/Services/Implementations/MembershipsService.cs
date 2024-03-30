@@ -1,6 +1,8 @@
 ﻿using Domain.Entities;
 using Domain.Exceptions;
 using Domain.Interfaces;
+using IdentityConnectionLib.ConnectionServices.Dtos;
+using IdentityConnectionLib.ConnectionServices.Interfaces;
 using Services.Attributes;
 using Services.Interfaces.Interfaces;
 using Shared.Dto.Groups;
@@ -8,7 +10,7 @@ using Shared.Dto.Memberships;
 
 namespace Services.Implementations;
 
-internal class MembershipsService(IRepositoryManager repoManager) : IMembershipsService
+internal class MembershipsService(IRepositoryManager repoManager, IIdentityConnectionService identityConnectionService) : IMembershipsService
 {
     public async Task<MembershipResponse> JoinGroup(Guid requesterId, Guid groupId)
     {
@@ -34,6 +36,7 @@ internal class MembershipsService(IRepositoryManager repoManager) : IMemberships
 
     private async Task<MembershipResponse> AddMember(Guid userId, Group group)
     {
+        var user = await GetUserInfoFromUserId(userId);
         var member = await repoManager.Memberships.GetByUserIdAndGroupId(userId, group.Id);
         // проверяем, существет ли дефолтная роль для пользователей группы
         var defaultMemberRole = await repoManager.GroupRoles.GetByIdAsync(group.DefaultMemberRoleId);
@@ -60,6 +63,7 @@ internal class MembershipsService(IRepositoryManager repoManager) : IMemberships
             await repoManager.UnitOfWork.SaveChangesAsync();
             return new MembershipResponse(member.Id,
                 member.UserId,
+                user.Username,
                 member.GroupId,
                 member.GroupRoleId,
                 member.DateJoined,
@@ -84,6 +88,7 @@ internal class MembershipsService(IRepositoryManager repoManager) : IMemberships
         await repoManager.UnitOfWork.SaveChangesAsync();
         return new MembershipResponse(newMember.Id,
             newMember.UserId,
+            user.Username,
             newMember.GroupId,
             newMember.GroupRoleId,
             newMember.DateJoined,
@@ -94,6 +99,7 @@ internal class MembershipsService(IRepositoryManager repoManager) : IMemberships
     [EnsureRequesterRights("KickMembers")]
     public async Task<MembershipResponse> KickMember(Guid requesterId, Guid groupId, Guid kickedId)
     {
+        var user = await GetUserInfoFromUserId(kickedId);
         var group = await CheckGroupExists(groupId);
         var member = await CheckMemberExists(kickedId, group.Id);
         if (member.IsOwner)
@@ -108,6 +114,7 @@ internal class MembershipsService(IRepositoryManager repoManager) : IMemberships
         await repoManager.UnitOfWork.SaveChangesAsync();
         return new MembershipResponse(member.Id,
             member.UserId,
+            user.Username,
             member.GroupId,
             member.GroupRoleId,
             member.DateJoined,
@@ -120,8 +127,13 @@ internal class MembershipsService(IRepositoryManager repoManager) : IMemberships
     {
         var group = await CheckGroupExists(groupId);
         await repoManager.Groups.LoadCollection(group, gr => gr.Memberships);
+        var ids = group.Memberships.Select(m => m.UserId);
+        var userInfos = (await identityConnectionService.GetUserInfos(ids))
+            .ToDictionary(x => x.Id, x => x.Username);
+        
         return group.Memberships.Select(member => new MembershipResponse(member.Id,
             member.UserId,
+            userInfos[member.UserId],
             member.GroupId,
             member.GroupRoleId,
             member.DateJoined,
@@ -134,8 +146,10 @@ internal class MembershipsService(IRepositoryManager repoManager) : IMemberships
     {
         await CheckGroupExists(groupId);
         var member = await CheckMemberExists(memberId, groupId);
+        var user = await GetUserInfoFromUserId(member.UserId);
         return new MembershipResponse(member.Id,
             member.UserId,
+            user.Username,
             member.GroupId,
             member.GroupRoleId,
             member.DateJoined,
@@ -147,6 +161,7 @@ internal class MembershipsService(IRepositoryManager repoManager) : IMemberships
     {
         var group = await CheckGroupExists(groupId);
         var member = await CheckUserIsMember(groupId, requesterId);
+        var user = await GetUserInfoFromUserId(member.Id);
         if (member.IsOwner)
             throw new OwnerLeaveForbiddenException();
         var leftRole = await repoManager.GroupRoles.GetDefaultLeftRole();
@@ -159,6 +174,7 @@ internal class MembershipsService(IRepositoryManager repoManager) : IMemberships
         await repoManager.UnitOfWork.SaveChangesAsync();
         return new MembershipResponse(member.Id,
             member.UserId,
+            user.Username,
             member.GroupId,
             member.GroupRoleId,
             member.DateJoined,
@@ -171,6 +187,7 @@ internal class MembershipsService(IRepositoryManager repoManager) : IMemberships
     {
         var group = await CheckGroupExists(groupId);
         var member = await CheckMemberExists(memberId, group.Id);
+        var user = await GetUserInfoFromUserId(member.Id);
         await repoManager.Memberships.LoadReference(member, m => m.GroupRole);
         if (!member.GroupRole.IsRevocable)
             throw new RoleIsNotRevocableForbiddenException(member.GroupRole.Id);
@@ -188,6 +205,7 @@ internal class MembershipsService(IRepositoryManager repoManager) : IMemberships
         await repoManager.UnitOfWork.SaveChangesAsync();
         return new MembershipResponse(member.Id,
             member.UserId,
+            user.Username,
             member.GroupId,
             member.GroupRoleId,
             member.DateJoined,
@@ -217,5 +235,11 @@ internal class MembershipsService(IRepositoryManager repoManager) : IMemberships
         if (member is null)
             throw new NotAMemberNotFoundException(userId, groupId);
         return member;
+    }
+    
+    private async Task<UserInfoResponse> GetUserInfoFromUserId(Guid userId)
+    {
+        var userInfo = await identityConnectionService.GetUserInfo(userId);
+        return userInfo;
     }
 }
