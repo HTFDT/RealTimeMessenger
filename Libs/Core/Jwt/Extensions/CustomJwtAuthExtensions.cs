@@ -1,10 +1,9 @@
 ﻿using System.Text;
-using Core.Base.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Core.Base.Extensions;
+namespace Core.Jwt.Extensions;
 
 public static class CustomJwtAuthExtensions
 {

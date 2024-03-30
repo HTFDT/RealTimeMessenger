@@ -1,6 +1,7 @@
-using Core.Base.Extensions;
-using Core.Base.Jwt;
-using Core.Base.Middleware;
+using Core.Jwt;
+using Core.Jwt.Extensions;
+using Core.Middleware;
+using Core.Swagger.Extensions;
 using Infrastructure.Extensions;
 using Presentation;
 using Services.Extensions;
@@ -15,7 +16,7 @@ builder.Services.AddCustomSwagger();
     
 builder.Configuration
     .SetBasePath("C:/Users/user/RiderProjects/RealTimeMessenger/")
-    .AddJsonFile("Libs/Core/Base/Jwt/jwtoptions.json");
+    .AddJsonFile("Libs/Core/Jwt/jwtoptions.json");
 
 var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;
 builder.Services.AddCustomJwtAuthentication(jwtOptions);

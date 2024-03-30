@@ -1,4 +1,4 @@
-﻿namespace Core.Base.Jwt;
+﻿namespace Core.Jwt;
 
 public class JwtOptions
 {

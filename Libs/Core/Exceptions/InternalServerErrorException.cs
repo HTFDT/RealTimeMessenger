@@ -1,4 +1,4 @@
-namespace Core.Base.Exceptions;
+namespace Core.Exceptions;
 
 public class InternalServerErrorException : Exception
 {

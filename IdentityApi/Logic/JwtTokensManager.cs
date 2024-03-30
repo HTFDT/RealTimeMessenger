@@ -2,7 +2,7 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Core.Base.Jwt;
+using Core.Jwt;
 using Dal.Entities;
 using Dal.Repository;
 using Dal.Repository.Interfaces;
