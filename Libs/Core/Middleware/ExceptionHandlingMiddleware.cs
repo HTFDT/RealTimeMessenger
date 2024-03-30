@@ -1,7 +1,7 @@
-﻿using Core.Base.Exceptions;
+﻿using Core.Exceptions;
 using Microsoft.AspNetCore.Http;
 
-namespace Core.Base.Middleware;
+namespace Core.Middleware;
 
 public sealed class ExceptionHandlingMiddleware : IMiddleware
 {

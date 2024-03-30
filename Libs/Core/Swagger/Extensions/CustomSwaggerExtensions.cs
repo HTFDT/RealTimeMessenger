@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 
-namespace Core.Base.Extensions;
+namespace Core.Swagger.Extensions;
 
 public static class CustomSwaggerExtensions
 {

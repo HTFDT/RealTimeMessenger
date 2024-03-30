@@ -1,4 +1,4 @@
-﻿using Core.Base.Exceptions;
+﻿using Core.Exceptions;
 
 namespace Domain.Exceptions;
 
