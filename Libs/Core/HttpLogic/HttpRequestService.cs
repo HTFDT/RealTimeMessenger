@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Polly;
+using Polly.Retry;
 using ContentType = Core.HttpLogic.Enums.ContentType;
 
 namespace Core.HttpLogic;
@@ -15,6 +17,13 @@ namespace Core.HttpLogic;
 internal class HttpRequestService(IHttpConnectionService httpConnectionService
     , IEnumerable<ITraceReader> traceReaders) : IHttpRequestService
 {
+    private static readonly AsyncRetryPolicy RequestsPolicy;
+    static HttpRequestService()
+    {
+        RequestsPolicy = Policy.Handle<Exception>()
+            .WaitAndRetryForeverAsync(i => TimeSpan.FromSeconds(i + 5));
+    }
+    
     /// <inheritdoc />
     public async Task<HttpResponse<TResponse>> SendRequestAsync<TResponse>(HttpRequestData requestData, 
         HttpConnectionData connectionData)
@@ -33,9 +42,9 @@ internal class HttpRequestService(IHttpConnectionService httpConnectionService
         foreach (var reader in traceReaders)
             httpRequestMessage.Headers.Add(reader.Name, reader.ReadValue());
         
-
-        var res = await httpConnectionService.SendRequestAsync(httpRequestMessage, client, default);
-
+        var res = await RequestsPolicy.ExecuteAsync(async () =>
+            await httpConnectionService.SendRequestAsync(httpRequestMessage, client, default));
+        
         var response = new HttpResponse<TResponse>
         {
             Body = await res.Content.ReadFromJsonAsync<TResponse>(),
