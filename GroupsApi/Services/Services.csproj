@@ -8,8 +8,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\Libs\IdentityConnectionLib\IdentityConnectionLib.csproj" />
       <ProjectReference Include="..\Domain\Domain.csproj" />
-      <ProjectReference Include="..\IdentityConnectionLib\IdentityConnectionLib.csproj" />
       <ProjectReference Include="..\Services.Interfaces\Services.Interfaces.csproj" />
     </ItemGroup>
 
