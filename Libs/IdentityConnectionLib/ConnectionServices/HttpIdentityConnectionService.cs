@@ -7,24 +7,24 @@ using IdentityConnectionLib.Exceptions;
 
 namespace IdentityConnectionLib.ConnectionServices;
 
-internal class IdentityConnectionService(IHttpRequestService httpRequestService) : IIdentityConnectionService
+internal class HttpIdentityConnectionService(IHttpRequestService httpRequestService) : IIdentityConnectionService
 {
     private const string BasePath = "https://localhost:7071";
-    public async Task<UserInfoResponse> GetUserInfo(Guid userId)
+    public async Task<UserInfoIdentityApiResponse> GetUserInfo(UserInfoIdentityApiRequest request)
     {
         var requestData = new HttpRequestData
         {
             Body = null,
             Method = HttpMethod.Get,
-            Path = BasePath + $"/users/{userId}"
+            Path = BasePath + $"/users/{request.UserId}"
         };
-        var response = await httpRequestService.SendRequestAsync<UserInfoResponse>(requestData);
+        var response = await httpRequestService.SendRequestAsync<UserInfoIdentityApiResponse>(requestData);
         if (response.StatusCode == HttpStatusCode.NotFound)
-            throw new UserInfoNotFoundException(userId);
+            throw new UserInfoNotFoundException(request.UserId);
         return response.Body!;
     }
     
-    public async Task<IList<UserInfoResponse>> GetUserInfos(IEnumerable<Guid> userIds)
+    public async Task<IList<UserInfoListIdentityApiResponse>> GetUserInfos(UserInfoListIdentityApiRequest request)
     {
         var requestData = new HttpRequestData
         {
@@ -32,9 +32,9 @@ internal class IdentityConnectionService(IHttpRequestService httpRequestService)
             Method = HttpMethod.Get,
             Path = BasePath + "/users"
         };
-        var response = await httpRequestService.SendRequestAsync<IEnumerable<UserInfoResponse>>(requestData);
-        var idsToReturn = userIds.ToHashSet();
-        var res = new List<UserInfoResponse>();
+        var response = await httpRequestService.SendRequestAsync<IEnumerable<UserInfoListIdentityApiResponse>>(requestData);
+        var idsToReturn = request.UserIds.ToHashSet();
+        var res = new List<UserInfoListIdentityApiResponse>();
         foreach (var user in response.Body!)
         {
             if (!idsToReturn.Contains(user.Id))
