@@ -4,6 +4,6 @@ namespace IdentityConnectionLib.ConnectionServices.Interfaces;
 
 public interface IIdentityConnectionService
 {
-    Task<UserInfoResponse> GetUserInfo(Guid userId);
-    Task<IList<UserInfoResponse>> GetUserInfos(IEnumerable<Guid> userIds);
+    Task<UserInfoIdentityApiResponse> GetUserInfo(UserInfoIdentityApiRequest request);
+    Task<IList<UserInfoListIdentityApiResponse>> GetUserInfos(UserInfoListIdentityApiRequest request);
 }
