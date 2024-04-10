@@ -1,9 +1,11 @@
 using Api;
+using Api.Consumers;
 using Core.Jwt;
 using Core.Jwt.Extensions;
 using Core.Swagger.Extensions;
 using Dal.Extensions;
 using Logic;
+using Api.Consumers.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +25,9 @@ builder.Services.AddCustomAuthorizationPolicies();
 builder.Services.AddTransient<UserManager>();
 builder.Services.AddTransient<JwtTokensManager>();
 builder.Services.AddTransient<RoleManager>();
+
+builder.Services.AddConsumers();
+builder.Services.AddHostedService<IdentityConsumptionManagerService>();
 
 
 var app = builder.Build();
