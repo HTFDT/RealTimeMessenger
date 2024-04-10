@@ -2,6 +2,8 @@ using Core.HttpLogic.Extensions;
 using Core.Jwt;
 using Core.Jwt.Extensions;
 using Core.Middleware;
+using Core.RabbitLogic.Extensions;
+using Core.ServiceIdLogic.Extensions;
 using Core.Swagger.Extensions;
 using Core.TraceIdLogic.Extensions;
 using IdentityConnectionLib.ConnectionServices.Extensions;
@@ -33,9 +35,12 @@ builder.Services.AddTransient<TraceWriterMiddleware>();
 builder.Services.AddTransient<TraceIdMiddleware>();
 
 builder.Services.AddHttpRequestService();
-builder.Services.AddIdentityConnectionService();
+builder.Services.AddIdentityConnectionService(builder.Configuration);
 builder.Services.TryAddTraceId();
 builder.Services.TryAddTraceJwtToken();
+
+builder.Services.AddRabbitClientServices();
+builder.Services.AddServiceIdAccessor();
 
 var app = builder.Build();
 
