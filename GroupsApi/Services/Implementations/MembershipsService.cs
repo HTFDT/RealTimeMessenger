@@ -128,7 +128,8 @@ internal class MembershipsService(IRepositoryManager repoManager, IIdentityConne
         var group = await CheckGroupExists(groupId);
         await repoManager.Groups.LoadCollection(group, gr => gr.Memberships);
         var ids = group.Memberships.Select(m => m.UserId);
-        var userInfos = (await identityConnectionService.GetUserInfos(ids))
+        var userInfos = (await identityConnectionService
+                .GetUserInfos(new UserInfoListIdentityApiRequest(ids)))
             .ToDictionary(x => x.Id, x => x.Username);
         
         return group.Memberships.Select(member => new MembershipResponse(member.Id,
@@ -237,9 +238,9 @@ internal class MembershipsService(IRepositoryManager repoManager, IIdentityConne
         return member;
     }
     
-    private async Task<UserInfoResponse> GetUserInfoFromUserId(Guid userId)
+    private async Task<UserInfoIdentityApiResponse> GetUserInfoFromUserId(Guid userId)
     {
-        var userInfo = await identityConnectionService.GetUserInfo(userId);
+        var userInfo = await identityConnectionService.GetUserInfo(new UserInfoIdentityApiRequest(userId));
         return userInfo;
     }
 }
