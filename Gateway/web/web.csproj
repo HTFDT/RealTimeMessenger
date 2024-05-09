@@ -4,18 +4,16 @@
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        <UserSecretsId>5f4927ca-a996-4bb4-a8e4-471b4049ef7e</UserSecretsId>
+      <UserSecretsId>77c5b1e0-a643-403d-8e46-97114bb22863</UserSecretsId>
   </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="MassTransit.RabbitMQ" Version="8.2.2" />
-      <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.5.0" />
       <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.5.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Libs\IdentityConnectionLib\IdentityConnectionLib.csproj" />
-      <ProjectReference Include="..\Logic\Logic.csproj" />
+      <ProjectReference Include="..\..\Libs\Core\Core.csproj" />
     </ItemGroup>
 
 </Project>

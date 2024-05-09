@@ -6,6 +6,7 @@ using Core.Swagger.Extensions;
 using Dal.Extensions;
 using Logic;
 using Api.Consumers.Extensions;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +29,18 @@ builder.Services.AddTransient<RoleManager>();
 
 builder.Services.AddConsumers();
 builder.Services.AddHostedService<IdentityConsumptionManagerService>();
+
+builder.Services.AddMassTransit(cfg =>
+{
+    cfg.AddConsumers(typeof(Program).Assembly);
+    
+    cfg.UsingRabbitMq((context, rmq) =>
+    {   
+        rmq.Host("localhost");
+        rmq.ConfigureEndpoints(context);
+    });
+});
+
 
 
 var app = builder.Build();
