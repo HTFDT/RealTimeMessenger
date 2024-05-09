@@ -8,6 +8,7 @@ using Core.Swagger.Extensions;
 using Core.TraceIdLogic.Extensions;
 using IdentityConnectionLib.ConnectionServices.Extensions;
 using Infrastructure.Extensions;
+using MassTransit;
 using Presentation;
 using Services.Extensions;
 using Web;
@@ -41,6 +42,17 @@ builder.Services.TryAddTraceJwtToken();
 
 builder.Services.AddRabbitClientServices();
 builder.Services.AddServiceIdAccessor();
+
+builder.Services.AddMassTransit(cfg =>
+{
+    cfg.AddConsumers(typeof(AssemblyRef).Assembly);
+    
+    cfg.UsingRabbitMq((context, rmq) =>
+    {
+        rmq.Host("localhost");
+        rmq.ConfigureEndpoints(context);
+    });
+});
 
 var app = builder.Build();
 
